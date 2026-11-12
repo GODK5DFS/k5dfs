@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hunting Ghosts: Chain & Jar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0d0d11;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 850px;
+            background: #141419;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid #2a2a35;
+        }
+
+        .header {
+            padding: 15px;
+            text-align: center;
+            background: #1a1a24;
+            border-bottom: 2px solid #2d2d3f;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .header h2 {
+            font-size: 13px;
+            color: #8a8a9e;
+            font-weight: 400;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: #111116;
+            border-bottom: 1px solid #22222e;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #7a7a8c;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .btn-pause-styled {
+            background: linear-gradient(135deg, #2e2e42, #1f1f2e);
+            border: 1px solid #00e5ff;
+            color: #00e5ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-pause-styled:hover {
+            background: linear-gradient(135deg, #00e5ff, #0088ff);
+            color: #000;
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+        }
+
+        .multiplier-badge {
+            display: none;
+            background: #ff0055;
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        canvas {
+            flex: 1;
+            background: radial-gradient(circle at center, #1b1b26 0%, #08080c 100%);
+            cursor: crosshair;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 8, 0.92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: #1a1a24;
+            border: 1px solid #333348;
+            border-radius: 12px;
+            width: 100%;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #2a2a3d;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            background: none;
+            border: none;
+            color: #7a7a8c;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: #00e5ff;
+            border-bottom: 2px solid #00e5ff;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 9px;
+            background: #0f0f17;
+            border: 1px solid #2e2e42;
+            border-radius: 6px;
+            color: #fff;
+            outline: none;
+            user-select: text;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 11px;
+            background: #00e5ff;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn-start-game {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #00e5ff, #0088ff);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-start-game:hover {
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.7);
+        }
+
+        .btn-option-key {
+            width: 100%;
+            padding: 9px;
+            background: #252533;
+            border: 1px solid #3d3d52;
+            color: #00e5ff;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-option-key:hover {
+            background: #2d2d3e;
+            border-color: #00e5ff;
+        }
+
+        .music-status {
+            font-size: 11px;
+            color: #ffda79;
+            margin-top: 6px;
+            text-align: center;
+            word-break: break-all;
+        }
+
+        .leaderboard-box {
+            margin-top: 12px;
+            max-height: 160px;
+            overflow-y: auto;
+            background: #12121a;
+            border-radius: 6px;
+            padding: 10px;
+            border: 1px solid #252536;
+        }
+
+        .lb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .lb-title {
+            font-size: 12px;
+            color: #00e5ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lb-sync-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-mini {
+            background: #252538;
+            border: 1px solid #3f3f5c;
+            color: #fff;
+            font-size: 10px;
+            padding: 3px 7px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-mini:hover {
+            border-color: #00e5ff;
+            color: #00e5ff;
+        }
+
+        .lb-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid #1e1e2d;
+        }
+
+        .cloud-status {
+            font-size: 10px;
+            color: #7bed9f;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background: #14141d;
+            font-size: 12px;
+            border-bottom: 1px solid #222230;
+        }
+
+        .btn-logout {
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-box-popup {
+            background: #1a1a24;
+            border: 1px solid #333348;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 340px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .modal-box-popup h3 {
+            font-size: 15px;
+            color: #00e5ff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-close-popup {
+            background: #333348;
+            color: #aaa;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 6px;
+            margin-top: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header">
+        <h1>Hunting Ghosts Game</h1>
+        <h2>Hunting Ghosts: Chain & Jar</h2>
+    </div>
+
+    <div class="user-info-bar" id="userBar">
+        <span>ผู้เล่น: <strong id="displayUsername" style="color:#00e5ff;">-</strong> | High Score: <strong id="displayHighScore" style="color:#ffda79;">0</strong></span>
+        <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+    </div>
+
+    <div class="top-bar">
+        <div class="stat-box">
+            <div class="stat-label">SCORE <span id="multBadge" class="multiplier-badge">x2</span></div>
+            <div class="stat-value" id="scoreVal">000</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">TIME</div>
+            <div class="stat-value" id="timeVal">30</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">CAUGHT</div>
+            <div class="stat-value" id="caughtVal">0</div>
+        </div>
+        <button class="btn-pause-styled" id="pauseBtn" onclick="togglePause()">⏸️ หยุดพัก</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Modal ล็อกอิน / สมัครสมาชิก / เริ่มเกม -->
+    <div class="modal-overlay" id="authModal">
+        <div class="auth-card">
+            <div id="authFormsContainer">
+                <div class="auth-tabs">
+                    <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+                    <button class="tab-btn" id="regTab" onclick="switchTab('register')">สมัครสมาชิก</button>
+                </div>
+
+                <form id="authForm" onsubmit="handleAuth(event)">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="authUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="authPassword" required>
+                    </div>
+                    <button type="submit" class="btn-submit" id="authSubmitBtn">เข้าสู่ระบบ</button>
+                </form>
+            </div>
+
+            <div id="loggedInView" class="hidden">
+                <button class="btn-start-game" onclick="startGameDirectly()">▶️ เริ่มเล่นเกม</button>
+                <button class="btn-option-key" onclick="openMusicModal()">🎵 ตั้งค่าเพลงประกอบ</button>
+                <button class="btn-option-key" onclick="openSecretModal()">🔑 ใส่โค้ดลับ (x2)</button>
+                <div class="music-status" id="musicStatusText">🎵 เพลงปัจจุบัน: เพลงเริ่มต้น (DefaultSynth)</div>
+            </div>
+
+            <div class="leaderboard-box">
+                <div class="lb-header">
+                    <div class="lb-title">🏆 ตารางอันดับ (Online)</div>
+                    <div class="lb-sync-actions">
+                        <button class="btn-mini" onclick="syncCloudLeaderboard()" title="รีเฟรชคะแนนจาก Cloud">🔄 รีเฟรช</button>
+                        <button class="btn-mini" onclick="openCloudConfigModal()" title="ตั้งค่าห้องออนไลน์ร่วมกัน">🌐 ห้องรวม</button>
+                        <button class="btn-mini" onclick="openShareScoreModal()" title="คัดลอก/นำเข้าโค้ดคะแนน">📤 แชร์</button>
+                    </div>
+                </div>
+                <div class="cloud-status">
+                    <span id="cloudRoomLabel">🌐 สถานะ: กำลังเชื่อมต่อ...</span>
+                </div>
+                <div id="lbContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ใส่โค้ดลับรูปกุญแจ -->
+    <div class="modal-overlay hidden" id="secretModal" style="z-index: 200;">
+        <div class="modal-box-popup">
+            <h3>🔑 ใส่โค้ดลับรับพลัง X2</h3>
+            <div class="form-group">
+                <input type="text" id="secretInputModal" placeholder="กรอกโค้ดลับที่นี่..." style="text-align: center; font-weight: bold; color: #00e5ff;">
+            </div>
+            <button class="btn-submit" onclick="applySecretCodeFromModal()">ยืนยันโค้ด</button>
+            <button class="btn-close-popup" onclick="closeSecretModal()">ยกเลิก</button>
+        </div>
+    </div>
+
+    <!-- Modal ตั้งค่าเพลง -->
+    <div class="modal-overlay hidden" id="musicModal" style="z-index: 200;">
+        <div class="modal-box-popup">
+            <h3>🎵 ตั้งค่าเพลงประกอบก่อนเริ่ม</h3>
+            <div class="form-group" style="text-align: left;">
+                <label>1. อัปโหลดไฟล์เพลง (.mp3 / .wav):</label>
+                <input type="file" id="bgmFileInput" accept="audio/*" onchange="handleMusicFileUpload(event)" style="font-size: 11px;">
+            </div>
+            <div style="font-size: 11px; color: #8a8a9e; margin: 10px 0;">-- หรือ --</div>
+            <div class="form-group" style="text-align: left;">
+                <label>2. ใส่ URL เพลง (Direct MP3 Link):</label>
+                <input type="text" id="bgmUrlInput" placeholder="https://example.com/music.mp3" style="font-size: 11px;">
+            </div>
+            <button class="btn-submit" onclick="applyMusicUrl()">บันทึกเพลง URL</button>
+            <button class="btn-close-popup" onclick="closeMusicModal()">เสร็จสิ้น / ปิด</button>
+        </div>
+    </div>
+
+    <!-- Modal ตั้งค่าห้อง Cloud ออนไลน์ร่วมกัน -->
+    <div class="modal-overlay hidden" id="cloudConfigModal" style="z-index: 200;">
+        <div class="modal-box-popup">
+            <h3>🌐 เชื่อมต่อห้องคะแนนออนไลน์</h3>
+            <p style="font-size: 11px; color: #aaa; margin-bottom: 10px; line-height: 1.4;">
+                ตั้งชื่อ <b>"รหัสห้อง (Room ID)"</b> ให้ตรงกับเพื่อนที่เล่นเครื่องอื่น เพื่อให้เห็นคะแนนขึ้นตารางเดียวกันแบบเรียลไทม์!
+            </p>
+            <div class="form-group" style="text-align: left;">
+                <label>รหัสห้องออนไลน์ (ภาษาอังกฤษ/ตัวเลข):</label>
+                <input type="text" id="roomInput" placeholder="เช่น ghost_room_999" style="text-align: center; color: #00e5ff; font-weight: bold;">
+            </div>
+            <button class="btn-submit" onclick="saveCloudRoom()">บันทึกและดึงคะแนน</button>
+            <button class="btn-close-popup" onclick="closeCloudConfigModal()">ปิด</button>
+        </div>
+    </div>
+
+    <!-- Modal แชร์/นำเข้าคะแนน (กรณีออฟไลน์) -->
+    <div class="modal-overlay hidden" id="shareScoreModal" style="z-index: 200;">
+        <div class="modal-box-popup">
+            <h3>📤 แชร์ / นำเข้าคะแนน</h3>
+            <div class="form-group" style="text-align: left;">
+                <label>โค้ดคะแนนของคุณ (ส่งให้เพื่อน):</label>
+                <input type="text" id="myShareCode" readonly onclick="this.select()" style="font-size: 11px; color: #ffda79;">
+                <button class="btn-mini" style="width: 100%; margin-top: 4px; padding: 5px;" onclick="copyMyShareCode()">📋 คัดลอกโค้ดของฉัน</button>
+            </div>
+            <div class="form-group" style="text-align: left; margin-top: 10px;">
+                <label>วางโค้ดคะแนนของเพื่อนเพื่อรวมเข้าตาราง:</label>
+                <input type="text" id="importCodeInput" placeholder="วางโค้ดที่นี่..." style="font-size: 11px;">
+            </div>
+            <button class="btn-submit" onclick="importFriendScore()">📥 นำเข้าคะแนนเพื่อน</button>
+            <button class="btn-close-popup" onclick="closeShareScoreModal()">ปิด</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight - 160;
+    }
+    resizeCanvas();
+
+    let currentUser = null;
+    let score = 0;
+    let time = 30;
+    let caught = 0;
+    let isPaused = false;
+    let isGameOver = true;
+    let timerInterval = null;
+    let multiplier = 1;
+
+    let ghosts = [];
+    let jar = { x: 0, y: 0, w: 90, h: 110 };
+    let chain = { active: false, x: 0, y: 0, targetX: 0, targetY: 0, length: 0, targetDist: 0, speed: 25, returning: false, caughtGhost: null };
+
+    // ระบบ Cloud Sync ข้ามเครื่อง (ใช้ฟรี Public Key-Value API + Local Fallback)
+    let cloudRoomId = localStorage.getItem('ghost_cloud_room') || 'hunting_ghosts_global_th_2026';
+    let cloudScoresCache = {};
+
+    async function syncCloudLeaderboard(uploadUser = null, uploadScore = null) {
+        const statusEl = document.getElementById('cloudRoomLabel');
+        statusEl.innerText = `🌐 ห้อง: ${cloudRoomId} (กำลังซิงค์...)`;
+        statusEl.style.color = '#ffda79';
+
+        // ดึงข้อมูลจากเครื่องก่อน
+        const localDb = getDB();
+        let merged = { ...cloudScoresCache };
+        Object.keys(localDb).forEach(u => {
+            if (!merged[u] || localDb[u].highScore > merged[u]) {
+                merged[u] = localDb[u].highScore;
+            }
+        });
+
+        if (uploadUser && uploadScore !== null) {
+            if (!merged[uploadUser] || uploadScore > merged[uploadUser]) {
+                merged[uploadUser] = uploadScore;
+            }
+        }
+
+        try {
+            // เชื่อมต่อ Cloud KV Store สาธารณะ (kvdb.io) เพื่อแชร์คะแนนข้ามเครื่องอัตโนมัติ
+            const bucketUrl = `https://kvdb.io/A2k9Xm7PqL4vN8wR3zT6yB/${encodeURIComponent(cloudRoomId)}`;
+            
+            const getRes = await fetch(bucketUrl);
+            if (getRes.ok) {
+                const remoteData = await getRes.json();
+                if (remoteData && typeof remoteData === 'object') {
+                    Object.keys(remoteData).forEach(u => {
+                        if (!merged[u] || remoteData[u] > merged[u]) {
+                            merged[u] = remoteData[u];
+                        }
+                    });
+                }
+            }
+
+            // อัปเดตกลับขึ้น Cloud ถ้ามีข้อมูลใหม่
+            await fetch(bucketUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(merged)
+            });
+
+            cloudScoresCache = merged;
+            localStorage.setItem('ghost_cloud_cache_' + cloudRoomId, JSON.stringify(merged));
+            statusEl.innerText = `🟢 ออนไลน์ (ห้อง: ${cloudRoomId})`;
+            statusEl.style.color = '#7bed9f';
+        } catch (err) {
+            const cached = JSON.parse(localStorage.getItem('ghost_cloud_cache_' + cloudRoomId) || '{}');
+            Object.keys(cached).forEach(u => {
+                if (!merged[u] || cached[u] > merged[u]) merged[u] = cached[u];
+            });
+            cloudScoresCache = merged;
+            statusEl.innerText = `🟡 โหมดออฟไลน์/ซิงค์ผ่านโค้ด (ห้อง: ${cloudRoomId})`;
+            statusEl.style.color = '#ffa502';
+        }
+
+        renderLeaderboard(merged);
+    }
+
+    function renderLeaderboard(scoreMap) {
+        const users = Object.keys(scoreMap).map(k => ({ name: k, score: Number(scoreMap[k]) || 0 }));
+        users.sort((a, b) => b.score - a.score);
+
+        const container = document.getElementById('lbContent');
+        if (users.length === 0) {
+            container.innerHTML = '<div style="font-size:11px; color:#666;">ยังไม่มีข้อมูลคะแนน</div>';
+            return;
+        }
+        container.innerHTML = users.map((u, i) => {
+            let medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+            let isMe = u.name === currentUser ? 'style="background: rgba(0,229,255,0.12); border-radius:4px; padding:4px;"' : '';
+            return `
+                <div class="lb-item" ${isMe}>
+                    <span>${medal} ${u.name}</span>
+                    <span style="color:#00e5ff; font-weight:bold;">${u.score}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function openCloudConfigModal() {
+        document.getElementById('roomInput').value = cloudRoomId;
+        document.getElementById('cloudConfigModal').classList.remove('hidden');
+    }
+
+    function closeCloudConfigModal() {
+        document.getElementById('cloudConfigModal').classList.add('hidden');
+    }
+
+    function saveCloudRoom() {
+        const newRoom = document.getElementById('roomInput').value.trim();
+        if (!newRoom) {
+            alert('กรุณาใส่รหัสห้อง');
+            return;
+        }
+        cloudRoomId = newRoom;
+        localStorage.setItem('ghost_cloud_room', cloudRoomId);
+        cloudScoresCache = {};
+        closeCloudConfigModal();
+        syncCloudLeaderboard();
+    }
+
+    function openShareScoreModal() {
+        const db = getDB();
+        const myData = currentUser && db[currentUser] 
+            ? { u: currentUser, s: db[currentUser].highScore }
+            : cloudScoresCache;
+        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(myData))));
+        document.getElementById('myShareCode').value = encoded;
+        document.getElementById('shareScoreModal').classList.remove('hidden');
+    }
+
+    function closeShareScoreModal() {
+        document.getElementById('shareScoreModal').classList.add('hidden');
+    }
+
+    function copyMyShareCode() {
+        const copyText = document.getElementById('myShareCode');
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert('คัดลอกโค้ดคะแนนแล้ว! ส่งให้เพื่อนนำไปกด "แชร์ -> นำเข้าคะแนนเพื่อน" ได้เลย');
+    }
+
+    function importFriendScore() {
+        const raw = document.getElementById('importCodeInput').value.trim();
+        if (!raw) return;
+        try {
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
+            if (decoded.u && decoded.s !== undefined) {
+                if (!cloudScoresCache[decoded.u] || decoded.s > cloudScoresCache[decoded.u]) {
+                    cloudScoresCache[decoded.u] = Number(decoded.s);
+                }
+            } else if (typeof decoded === 'object') {
+                Object.keys(decoded).forEach(k => {
+                    if (!cloudScoresCache[k] || decoded[k] > cloudScoresCache[k]) {
+                        cloudScoresCache[k] = Number(decoded[k]);
+                    }
+                });
+            }
+            localStorage.setItem('ghost_cloud_cache_' + cloudRoomId, JSON.stringify(cloudScoresCache));
+            renderLeaderboard(cloudScoresCache);
+            syncCloudLeaderboard();
+            alert('นำเข้าคะแนนเพื่อนเรียบร้อย!');
+            document.getElementById('importCodeInput').value = '';
+            closeShareScoreModal();
+        } catch (e) {
+            alert('โค้ดคะแนนไม่ถูกต้อง');
+        }
+    }
+
+    // ระบบเพลงประกอบ Web Audio API
+    let audioCtx = null;
+    let customAudio = new Audio();
+    customAudio.loop = true;
+    let isCustomMusic = false;
+    let defaultBgmOsc = null;
+    let defaultBgmGain = null;
+
+    function initAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playDefaultBgm() {
+        stopBgm();
+        if (!audioCtx) initAudioContext();
+        
+        defaultBgmGain = audioCtx.createGain();
+        defaultBgmGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        defaultBgmGain.connect(audioCtx.destination);
+
+        defaultBgmOsc = audioCtx.createOscillator();
+        defaultBgmOsc.type = 'triangle';
+        defaultBgmOsc.frequency.setValueAtTime(220, audioCtx.currentTime);
+
+        let notes = [220, 261.63, 293.66, 329.63];
+        let noteIdx = 0;
+        setInterval(() => {
+            if (defaultBgmOsc && !isPaused && !isGameOver && !isCustomMusic) {
+                noteIdx = (noteIdx + 1) % notes.length;
+                defaultBgmOsc.frequency.setValueAtTime(notes[noteIdx], audioCtx.currentTime);
+            }
+        }, 300);
+
+        defaultBgmOsc.connect(defaultBgmGain);
+        defaultBgmOsc.start();
+    }
+
+    function playCustomBgm() {
+        stopBgm();
+        customAudio.play().catch(e => console.log("Audio play error:", e));
+    }
+
+    function playBgm() {
+        if (isCustomMusic && customAudio.src) {
+            playCustomBgm();
+        } else {
+            playDefaultBgm();
+        }
+    }
+
+    function stopBgm() {
+        if (defaultBgmOsc) {
+            try { defaultBgmOsc.stop(); } catch(e){}
+            defaultBgmOsc = null;
+        }
+        if (customAudio) {
+            customAudio.pause();
+        }
+    }
+
+    function openMusicModal() {
+        document.getElementById('musicModal').classList.remove('hidden');
+    }
+
+    function closeMusicModal() {
+        document.getElementById('musicModal').classList.add('hidden');
+    }
+
+    function handleMusicFileUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            customAudio.src = url;
+            isCustomMusic = true;
+            document.getElementById('musicStatusText').innerText = `🎵 เพลงปัจจุบัน: ${file.name}`;
+            alert('เพิ่มไฟล์เพลงสำเร็จ!');
+        }
+    }
+
+    function applyMusicUrl() {
+        const url = document.getElementById('bgmUrlInput').value.trim();
+        if (url) {
+            customAudio.src = url;
+            isCustomMusic = true;
+            document.getElementById('musicStatusText').innerText = `🎵 เพลงปัจจุบัน: Custom URL`;
+            alert('ตั้งค่า URL เพลงสำเร็จ!');
+            closeMusicModal();
+        } else {
+            alert('กรุณากรอก URL เพลง');
+        }
+    }
+
+    function getDB() {
+        return JSON.parse(localStorage.getItem('ghost_game_users') || '{}');
+    }
+
+    function saveDB(db) {
+        localStorage.setItem('ghost_game_users', JSON.stringify(db));
+    }
+
+    function switchTab(tab) {
+        document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+        document.getElementById('regTab').classList.toggle('active', tab === 'register');
+        document.getElementById('authSubmitBtn').innerText = tab === 'login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+        document.getElementById('authForm').dataset.mode = tab;
+    }
+    document.getElementById('authForm').dataset.mode = 'login';
+
+    function handleAuth(e) {
+        e.preventDefault();
+        const u = document.getElementById('authUsername').value.trim();
+        const p = document.getElementById('authPassword').value.trim();
+        const mode = document.getElementById('authForm').dataset.mode;
+        const db = getDB();
+
+        if (!u || !p) return;
+
+        if (mode === 'register') {
+            if (db[u]) {
+                alert('Username นี้มีผู้ใช้งานแล้ว');
+                return;
+            }
+            db[u] = { password: p, highScore: 0 };
+            saveDB(db);
+            syncCloudLeaderboard(u, 0);
+            alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
+            switchTab('login');
+        } else {
+            if (!db[u]) {
+                // หากเป็นผู้เล่นที่เคยเล่นบน Cloud แต่เข้าเครื่องใหม่ ให้สร้างโปรไฟล์ในเครื่องให้อัตโนมัติ
+                if (cloudScoresCache[u] !== undefined) {
+                    db[u] = { password: p, highScore: cloudScoresCache[u] };
+                    saveDB(db);
+                } else {
+                    alert('Username หรือ Password ไม่ถูกต้อง');
+                    return;
+                }
+            } else if (db[u].password !== p) {
+                alert('Username หรือ Password ไม่ถูกต้อง');
+                return;
+            }
+            currentUser = u;
+            const bestScore = Math.max(db[currentUser].highScore, cloudScoresCache[currentUser] || 0);
+            db[currentUser].highScore = bestScore;
+            saveDB(db);
+
+            document.getElementById('displayUsername').innerText = currentUser;
+            document.getElementById('displayHighScore').innerText = bestScore;
+            
+            document.getElementById('authFormsContainer').classList.add('hidden');
+            document.getElementById('loggedInView').classList.remove('hidden');
+            syncCloudLeaderboard(currentUser, bestScore);
+        }
+    }
+
+    function startGameDirectly() {
+        initAudioContext();
+        document.getElementById('authModal').classList.add('hidden');
+        restartGame();
+    }
+
+    function logout() {
+        currentUser = null;
+        isGameOver = true;
+        stopBgm();
+        clearInterval(timerInterval);
+        document.getElementById('authFormsContainer').classList.remove('hidden');
+        document.getElementById('loggedInView').classList.add('hidden');
+        document.getElementById('authModal').classList.remove('hidden');
+        syncCloudLeaderboard();
+    }
+
+    function openSecretModal() {
+        document.getElementById('secretModal').classList.remove('hidden');
+    }
+
+    function closeSecretModal() {
+        document.getElementById('secretModal').classList.add('hidden');
+    }
+
+    function applySecretCodeFromModal() {
+        const code = document.getElementById('secretInputModal').value.trim();
+        if (code === 'godk5dfs') {
+            multiplier = 2;
+            document.getElementById('multBadge').style.display = 'inline-block';
+            alert('เปิดใช้งานโค้ดลับ! รับคะแนนและตัวคูณ x2');
+            closeSecretModal();
+        } else {
+            alert('โค้ดลับไม่ถูกต้อง');
+        }
+    }
+
+    function spawnGhost() {
+        return {
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: Math.random() * (canvas.height / 2) + 40,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 1.5,
+            size: 24,
+            captured: false
+        };
+    }
+
+    function restartGame() {
+        score = 0;
+        time = 30;
+        caught = 0;
+        isPaused = false;
+        isGameOver = false;
+        ghosts = [];
+        for (let i = 0; i < 6; i++) ghosts.push(spawnGhost());
+        
+        document.getElementById('scoreVal').innerText = '000';
+        document.getElementById('timeVal').innerText = time;
+        document.getElementById('caughtVal').innerText = caught;
+
+        playBgm();
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!isPaused && !isGameOver) {
+                time--;
+                document.getElementById('timeVal').innerText = time;
+                if (time <= 0) {
+                    endGame();
+                }
+            }
+        }, 1000);
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (isPaused) {
+            pauseBtn.innerHTML = '▶️ เล่นต่อ';
+            pauseBtn.style.background = 'linear-gradient(135deg, #00b894, #0088ff)';
+            pauseBtn.style.color = '#fff';
+            if (isCustomMusic) customAudio.pause();
+        } else {
+            pauseBtn.innerHTML = '⏸️ หยุดพัก';
+            pauseBtn.style.background = 'linear-gradient(135deg, #2e2e42, #1f1f2e)';
+            pauseBtn.style.color = '#00e5ff';
+            if (isCustomMusic) customAudio.play();
+        }
+    }
+
+    function endGame() {
+        isGameOver = true;
+        clearInterval(timerInterval);
+        stopBgm();
+        alert(`หมดเวลา! คะแนนของคุณคือ: ${score}`);
+        if (currentUser) {
+            const db = getDB();
+            if (score > db[currentUser].highScore) {
+                db[currentUser].highScore = score;
+                saveDB(db);
+                document.getElementById('displayHighScore').innerText = score;
+            }
+            syncCloudLeaderboard(currentUser, db[currentUser].highScore);
+        } else {
+            syncCloudLeaderboard();
+        }
+        document.getElementById('authModal').classList.remove('hidden');
+    }
+
+    canvas.addEventListener('click', (e) => {
+        if (isPaused || isGameOver || chain.active) return;
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        const dx = clickX - jar.x;
+        const dy = clickY - (jar.y - 40);
+
+        chain.active = true;
+        chain.x = jar.x;
+        chain.y = jar.y - 40;
+        chain.targetX = clickX;
+        chain.targetY = clickY;
+        chain.length = 0;
+        chain.targetDist = Math.hypot(dx, dy);
+        chain.returning = false;
+        chain.caughtGhost = null;
+    });
+
+    function update() {
+        if (isPaused || isGameOver) return;
+
+        jar.x = canvas.width / 2;
+        jar.y = canvas.height - 70;
+
+        ghosts.forEach(g => {
+            if (!g.captured) {
+                g.x += g.vx;
+                g.y += g.vy;
+
+                if (g.x < 20 || g.x > canvas.width - 20) g.vx *= -1;
+                if (g.y < 20 || g.y > canvas.height / 2 + 50) g.vy *= -1;
+            }
+        });
+
+        if (chain.active) {
+            const dx = chain.targetX - jar.x;
+            const dy = chain.targetY - (jar.y - 40);
+            const angle = Math.atan2(dy, dx);
+
+            if (!chain.returning) {
+                chain.length += chain.speed;
+                chain.x = jar.x + Math.cos(angle) * chain.length;
+                chain.y = (jar.y - 40) + Math.sin(angle) * chain.length;
+
+                ghosts.forEach(g => {
+                    if (!g.captured && !chain.caughtGhost) {
+                        const hitDist = Math.hypot(g.x - chain.x, g.y - chain.y);
+                        if (hitDist < g.size) {
+                            g.captured = true;
+                            chain.caughtGhost = g;
+                            chain.returning = true;
+                        }
+                    }
+                });
+
+                if (chain.length >= chain.targetDist) {
+                    chain.length = chain.targetDist;
+                    chain.x = chain.targetX;
+                    chain.y = chain.targetY;
+                    chain.returning = true;
+                }
+            } else {
+                chain.length -= chain.speed;
+                chain.x = jar.x + Math.cos(angle) * chain.length;
+                chain.y = (jar.y - 40) + Math.sin(angle) * chain.length;
+
+                if (chain.caughtGhost) {
+                    chain.caughtGhost.x = chain.x;
+                    chain.caughtGhost.y = chain.y;
+                }
+
+                if (chain.length <= 0) {
+                    chain.active = false;
+                    if (chain.caughtGhost) {
+                        score += 10 * multiplier;
+                        caught += 1 * multiplier;
+                        document.getElementById('scoreVal').innerText = String(score).padStart(3, '0');
+                        document.getElementById('caughtVal').innerText = caught;
+                        
+                        ghosts = ghosts.filter(g => g !== chain.caughtGhost);
+                        ghosts.push(spawnGhost());
+                    }
+                }
+            }
+        }
+    }
+
+    function drawJar() {
+        ctx.save();
+        ctx.translate(jar.x, jar.y);
+
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 15;
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.roundRect(-35, -40, 70, 80, 15);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.rect(-20, -52, 40, 12);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawGhost(g) {
+        ctx.save();
+        ctx.translate(g.x, g.y);
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#ffffff';
+
+        ctx.beginPath();
+        ctx.arc(0, -5, 12, Math.PI, 0, false);
+        ctx.lineTo(12, 10);
+        ctx.lineTo(6, 5);
+        ctx.lineTo(0, 10);
+        ctx.lineTo(-6, 5);
+        ctx.lineTo(-12, 10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(-4, -5, 2.5, 0, Math.PI * 2);
+        ctx.arc(4, -5, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function drawChain() {
+        if (!chain.active) return;
+
+        ctx.save();
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 8;
+
+        ctx.beginPath();
+        ctx.moveTo(jar.x, jar.y - 40);
+        ctx.lineTo(chain.x, chain.y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath();
+        ctx.arc(chain.x, chain.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        drawJar();
+        ghosts.forEach(drawGhost);
+        drawChain();
+    }
+
+    function gameLoop() {
+        update();
+        render();
+        requestAnimationFrame(gameLoop);
+    }
+
+    syncCloudLeaderboard();
+    setInterval(() => {
+        if (!document.getElementById('authModal').classList.contains('hidden')) {
+            syncCloudLeaderboard();
+        }
+    }, 10000);
+    gameLoop();
+</script>
+</body>
+</html>
